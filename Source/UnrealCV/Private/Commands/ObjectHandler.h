@@ -31,6 +31,9 @@ public:
 	/** Set object rotation */
 	FExecStatus SetObjectRotation(const TArray<FString>& Args);
 
+	/** Get object bounding box */
+	FExecStatus GetObjectBoundingBox(const TArray<FString>& Args);
+
 	/** Show object */
 	FExecStatus ShowObject(const TArray<FString>& Args);
 
