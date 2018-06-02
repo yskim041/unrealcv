@@ -53,18 +53,11 @@ FExecStatus FObjectPainter::GetActorColor(FString ActorId)
 	}
 }
 
-// TODO: This should be moved to command handler
-FExecStatus FObjectPainter::GetObjectList()
+TArray<FString> FObjectPainter::GetObjectList()
 {
 	TArray<FString> Keys;
 	this->Id2Actor.GetKeys(Keys);
-	FString Message = "";
-	for (auto ActorId : Keys)
-	{
-		Message += ActorId + " ";
-	}
-	Message = Message.LeftChop(1);
-	return FExecStatus::OK(Message);
+        return Keys;
 }
 
 AActor* FObjectPainter::GetObject(FString ActorId)

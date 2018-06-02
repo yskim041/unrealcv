@@ -19,20 +19,20 @@ public:
 
 	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
 
+        /** Get a list of the poses of all objects */
+	FExecStatus GetObjectPoses(const TArray<FString>& Args);
+	/** Get object bounding box */
+	FExecStatus GetObjectBoundingBox(const TArray<FString>& Args);
+
 	/** Get object location */
 	FExecStatus GetObjectLocation(const TArray<FString>& Args);
-
 	/** Get object rotation */
 	FExecStatus GetObjectRotation(const TArray<FString>& Args);
 
 	/** Set object location */
 	FExecStatus SetObjectLocation(const TArray<FString>& Args);
-
 	/** Set object rotation */
 	FExecStatus SetObjectRotation(const TArray<FString>& Args);
-
-	/** Get object bounding box */
-	FExecStatus GetObjectBoundingBox(const TArray<FString>& Args);
 
 	/** Show object */
 	FExecStatus ShowObject(const TArray<FString>& Args);

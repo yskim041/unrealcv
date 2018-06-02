@@ -31,7 +31,7 @@ public:
 	AActor* GetObject(FString ObjectName);
 
 	/** Return a list of actors in the level */
-	FExecStatus GetObjectList();
+	TArray<FString> GetObjectList();
 
 	/** Get the object color */
 	FExecStatus GetActorColor(FString ActorId);

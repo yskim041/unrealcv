@@ -18,6 +18,10 @@ void FObjectCommandHandler::RegisterCommands()
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::CurrentObjectHandler); // Redirect to current
 	// CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectPoses);
+	Help = "Get poses of all objects";
+	CommandDispatcher->BindCommand(TEXT("vget /object_poses [str]"), Cmd, Help);
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectColor);
 	Help = "Get the labeling color of an object (used in object instance mask)";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/color"), Cmd, Help);
@@ -67,7 +71,14 @@ void FObjectCommandHandler::RegisterCommands()
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
 {
-	return FObjectPainter::Get().GetObjectList();
+  TArray<FString> Keys = FObjectPainter::Get().GetObjectList();
+	FString Message = "";
+	for (auto ActorId : Keys)
+	{
+		Message += ActorId + " ";
+	}
+	Message = Message.LeftChop(1);
+	return FExecStatus::OK(Message);
 }
 
 FExecStatus FObjectCommandHandler::SetObjectColor(const TArray<FString>& Args)
@@ -162,8 +173,58 @@ FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& A
 		}
 		else
 		{
-			return FExecStatus::Error("Can not find current object");
+			return FExecStatus::Error("Cannot find current object");
 		}
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetObjectPoses(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+    FString ObjectPrefix = Args[0];
+
+    FString RstMsg = "";
+
+    TArray<FString> Keys = FObjectPainter::Get().GetObjectList();
+    for (auto ActorId : Keys)
+    {
+      if (ActorId.Contains(ObjectPrefix))
+      {
+        RstMsg += ActorId + "|t ";
+
+        // location
+
+
+        // rotation
+
+
+        // bbox 3d
+
+      }
+    }
+    RstMsg = RstMsg.LeftChop(1);
+    return FExecStatus::OK(RstMsg);
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetObjectBoundingBox(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
+		}
+
+		FBox BoundingBox = Object->GetComponentsBoundingBox();
+		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"),
+			BoundingBox.Max.X, BoundingBox.Max.Y, BoundingBox.Max.Z,
+			BoundingBox.Min.X, BoundingBox.Min.Y, BoundingBox.Min.Z));
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -176,7 +237,7 @@ FExecStatus FObjectCommandHandler::GetObjectLocation(const TArray<FString>& Args
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		FVector Location = Object->GetActorLocation();
@@ -194,7 +255,7 @@ FExecStatus FObjectCommandHandler::GetObjectRotation(const TArray<FString>& Args
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		// TODO: support quaternion
@@ -213,7 +274,7 @@ FExecStatus FObjectCommandHandler::SetObjectLocation(const TArray<FString>& Args
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		// TODO: Check whether this object is movable
@@ -241,7 +302,7 @@ FExecStatus FObjectCommandHandler::SetObjectRotation(const TArray<FString>& Args
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		// TODO: Check whether this object is movable
@@ -249,25 +310,6 @@ FExecStatus FObjectCommandHandler::SetObjectRotation(const TArray<FString>& Args
 		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
 		bool Success = Object->SetActorRotation(Rotator);
 		return FExecStatus::OK();
-	}
-	return FExecStatus::InvalidArgument;
-}
-
-FExecStatus FObjectCommandHandler::GetObjectBoundingBox(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		FString ObjectName = Args[0];
-		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
-		if (Object == NULL)
-		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
-		}
-
-		FBox BoundingBox = Object->GetComponentsBoundingBox();
-		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"),
-			BoundingBox.Max.X, BoundingBox.Max.Y, BoundingBox.Max.Z,
-			BoundingBox.Min.X, BoundingBox.Min.Y, BoundingBox.Min.Z));
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -280,7 +322,7 @@ FExecStatus GetObjectMobility(const TArray<FString>& Args)
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		FString MobilityName = "";
@@ -305,7 +347,7 @@ FExecStatus FObjectCommandHandler::ShowObject(const TArray<FString>& Args)
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		Object->SetActorHiddenInGame(false);
@@ -322,7 +364,7 @@ FExecStatus FObjectCommandHandler::HideObject(const TArray<FString>& Args)
 		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
 		if (Object == NULL)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
 		}
 
 		Object->SetActorHiddenInGame(true);

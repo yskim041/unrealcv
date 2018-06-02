@@ -161,6 +161,38 @@ FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Ar
 	// FMatrix& ProjMatrix = FSceneView::ViewProjectionMatrix;
 	// this->Character->GetWorld()->GetGameViewport()->Viewport->
 	// this->Character
+
+  if (Args.Num() == 1)
+  {
+    // FMatrix* ProjMatrix = FViewMatrices::Get().GetProjectionMatrix();
+    // FMatrix* ProjMatrix = FSceneView::ViewMatrices.GetProjectionMatrix();
+
+    ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+    if (LocalPlayer != nullptr
+        && LocalPlayer->ViewportClient != nullptr
+        && LocalPlayer->ViewportClient->Viewport)
+    {
+      FSceneViewFamilyContext ViewFamily(
+          FSceneViewFamily::ConstructionValues(
+            LocalPlayer->ViewportClient->Viewport,
+            GetWorld()->Scene,
+            LocalPlayer->ViewportClient->EngineShowFlags)
+          .SetRealtimeUpdate(true));
+
+      FVector ViewLocation;
+      FRotator ViewRotation;
+      FSceneView* SceneView = LocalPlayer->CalcSceneView(
+          &ViewFamily,
+          ViewLocation,
+          ViewRotation,
+          LocalPlayer->ViewportClient->Viewport);
+
+      FMatrix* ProjMatrix = FSceneView->ViewMatrices.GetProjectionMatrix();
+      return FExecStatus::OK(FString::Printf(TEXT(ProjMatrix->ToString())));
+    }
+    return FExecStatus::OK();
+  }
+
 	return FExecStatus::InvalidArgument;
 }
 
