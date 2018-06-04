@@ -187,8 +187,8 @@ FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Ar
           ViewRotation,
           LocalPlayer->ViewportClient->Viewport);
 
-      FMatrix* ProjMatrix = FSceneView->ViewMatrices.GetProjectionMatrix();
-      return FExecStatus::OK(FString::Printf(TEXT(ProjMatrix->ToString())));
+      FMatrix ProjMatrix = SceneView->ViewMatrices.GetProjectionMatrix();
+      return FExecStatus::OK(ProjMatrix.ToString());
     }
     return FExecStatus::OK();
   }

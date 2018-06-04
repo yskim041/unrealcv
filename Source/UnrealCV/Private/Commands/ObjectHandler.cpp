@@ -19,7 +19,7 @@ void FObjectCommandHandler::RegisterCommands()
 	// CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectPoses);
-	Help = "Get poses of all objects";
+	Help = "Get poses of all objects by prefix";
 	CommandDispatcher->BindCommand(TEXT("vget /object_poses [str]"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectColor);
@@ -41,6 +41,14 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectRotation);
 	Help = "Get object rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/rotation"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectPose);
+	Help = "Get object pose [x, y, z, pitch, yaw, roll]";
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/pose"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectPose);
+	Help = "Set object pose [x, y, z, pitch, yaw, roll]";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/pose [float] [float] [float] [float] [float] [float]"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
 	Help = "Set object location [x, y, z]";
@@ -192,19 +200,23 @@ FExecStatus FObjectCommandHandler::GetObjectPoses(const TArray<FString>& Args)
     {
       if (ActorId.Contains(ObjectPrefix))
       {
-        RstMsg += ActorId + "|t ";
+        AActor* Object = FObjectPainter::Get().GetObject(ActorId);
+        if (Object == NULL)
+        {
+          return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ActorId));
+        }
 
-        // location
+        FVector Location = Object->GetActorLocation();
+        FRotator Rotation = Object->GetActorRotation();
+        FBox BoundingBox = Object->GetComponentsBoundingBox();
 
-
-        // rotation
-
-
-        // bbox 3d
-
+        RstMsg += ActorId + FString::Printf(TEXT(" %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f "),
+              Location.X, Location.Y, Location.Z,
+              Rotation.Pitch, Rotation.Yaw, Rotation.Roll,
+              BoundingBox.Max.X, BoundingBox.Max.Y, BoundingBox.Max.Z,
+              BoundingBox.Min.X, BoundingBox.Min.Y, BoundingBox.Min.Z);
       }
     }
-    RstMsg = RstMsg.LeftChop(1);
     return FExecStatus::OK(RstMsg);
 	}
 	return FExecStatus::InvalidArgument;
@@ -225,6 +237,27 @@ FExecStatus FObjectCommandHandler::GetObjectBoundingBox(const TArray<FString>& A
 		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"),
 			BoundingBox.Max.X, BoundingBox.Max.Y, BoundingBox.Max.Z,
 			BoundingBox.Min.X, BoundingBox.Min.Y, BoundingBox.Min.Z));
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetObjectPose(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
+		}
+
+		FVector Location = Object->GetActorLocation();
+		FRotator Rotation = Object->GetActorRotation();
+
+		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"),
+          Location.X, Location.Y, Location.Z,
+          Rotation.Pitch, Rotation.Yaw, Rotation.Roll));
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -261,6 +294,39 @@ FExecStatus FObjectCommandHandler::GetObjectRotation(const TArray<FString>& Args
 		// TODO: support quaternion
 		FRotator Rotation = Object->GetActorRotation();
 		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll));
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+/** There is no guarantee this will always succeed, for example, hitting a wall */
+FExecStatus FObjectCommandHandler::SetObjectPose(const TArray<FString>& Args)
+{
+	if (Args.Num() == 7)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Cannot find object %s"), *ObjectName));
+		}
+
+		// TODO: Check whether this object is movable
+		float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
+		FVector NewLocation = FVector(X, Y, Z);
+		bool Success = Object->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+		float Pitch = FCString::Atof(*Args[4]), Yaw = FCString::Atof(*Args[5]), Roll = FCString::Atof(*Args[6]);
+		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
+		Success = Success && Object->SetActorRotation(Rotator);
+
+		if (Success)
+		{
+			return FExecStatus::OK();
+		}
+		else
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Failed to move object %s"), *ObjectName));
+		}
 	}
 	return FExecStatus::InvalidArgument;
 }

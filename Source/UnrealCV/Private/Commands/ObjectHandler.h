@@ -24,11 +24,15 @@ public:
 	/** Get object bounding box */
 	FExecStatus GetObjectBoundingBox(const TArray<FString>& Args);
 
+	/** Get object pose */
+	FExecStatus GetObjectPose(const TArray<FString>& Args);
 	/** Get object location */
 	FExecStatus GetObjectLocation(const TArray<FString>& Args);
 	/** Get object rotation */
 	FExecStatus GetObjectRotation(const TArray<FString>& Args);
 
+	/** Set object pose */
+	FExecStatus SetObjectPose(const TArray<FString>& Args);
 	/** Set object location */
 	FExecStatus SetObjectLocation(const TArray<FString>& Args);
 	/** Set object rotation */
