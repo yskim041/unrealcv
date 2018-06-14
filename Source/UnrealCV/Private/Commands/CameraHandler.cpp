@@ -163,7 +163,7 @@ void FCameraCommandHandler::RegisterCommands()
 		TArray<uint8> LitData = this->GetNpyBinaryUint8Data(Args, TEXT("lit"), 4);
 		TArray<uint8> DepthData = this->GetNpyBinaryFloat16Data(Args, TEXT("depth"), 1);
 		TArray<uint8> NormalData = this->GetNpyBinaryUint8Data(Args, TEXT("normal"), 3);
-		TArray<uint8> StencilData = this->GetNpyBinaryUint8Data(Args, TEXT("stencil"), 1);
+		TArray<uint8> StencilData = this->GetNpyBinaryFloat16Data(Args, TEXT("stencil"), 1);
 		TArray<uint8> Data;
 		Data += LitData;
 		Data += DepthData;

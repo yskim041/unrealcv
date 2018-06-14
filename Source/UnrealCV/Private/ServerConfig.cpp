@@ -27,6 +27,7 @@ FServerConfig::FServerConfig()
 	SupportedModes.Add(TEXT("normal"));
 	SupportedModes.Add(TEXT("wireframe"));
 //	SupportedModes.Add(TEXT("default"));
+	SupportedModes.Add(TEXT("stencil"));
 
 	this->Load();
 	this->Save(); // Flush the default config to the disk if file not exist.
