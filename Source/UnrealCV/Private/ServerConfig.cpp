@@ -10,7 +10,7 @@ FServerConfig::FServerConfig()
 	CoreSection = "UnrealCV.Core";
 
 	// Default value, will be unchanged if the config is missing.
-	Port = 9000; 
+	Port = 9000;
 	Width = 640;
 	Height = 480;
 	FOV = 90.0f;
@@ -20,15 +20,15 @@ FServerConfig::FServerConfig()
 
 	SupportedModes.Add(TEXT("lit"));
 	SupportedModes.Add(TEXT("depth"));
-//	SupportedModes.Add(TEXT("vis_depth"));
-//	SupportedModes.Add(TEXT("plane_depth"));
+	SupportedModes.Add(TEXT("vis_depth"));
+	// SupportedModes.Add(TEXT("plane_depth"));
 	// SupportedModes.Add(TEXT("debug"));
 	SupportedModes.Add(TEXT("object_mask"));
 	SupportedModes.Add(TEXT("normal"));
-	// SupportedModes.Add(TEXT("wireframe"));
+	SupportedModes.Add(TEXT("wireframe"));
 //	SupportedModes.Add(TEXT("default"));
 
-	this->Load(); 
+	this->Load();
 	this->Save(); // Flush the default config to the disk if file not exist.
 }
 

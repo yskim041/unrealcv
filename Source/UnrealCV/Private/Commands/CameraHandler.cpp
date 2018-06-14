@@ -126,6 +126,9 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("normal")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
 
+	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("stencil")); });
+	CommandDispatcher->BindCommand("vget /camera/[uint]/stencil png", Cmd, Help);
+
 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryUint8(Args, TEXT("lit"), 4); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit npy", Cmd, Help);
 
@@ -141,6 +144,9 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryUint8(Args, TEXT("normal"), 3); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal npy", Cmd, Help);
 
+  Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("stencil"), 1); });
+	CommandDispatcher->BindCommand("vget /camera/[uint]/stencil npy", Cmd, Help);
+
 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) {
 		TArray<uint8> LitData = this->GetNpyBinaryUint8Data(Args, TEXT("lit"), 4);
 		TArray<uint8> DepthData = this->GetNpyBinaryFloat16Data(Args, TEXT("depth"), 1);
@@ -152,6 +158,20 @@ void FCameraCommandHandler::RegisterCommands()
 		return FExecStatus::Binary(Data);
 	});
 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit_depth_normal npy", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) {
+		TArray<uint8> LitData = this->GetNpyBinaryUint8Data(Args, TEXT("lit"), 4);
+		TArray<uint8> DepthData = this->GetNpyBinaryFloat16Data(Args, TEXT("depth"), 1);
+		TArray<uint8> NormalData = this->GetNpyBinaryUint8Data(Args, TEXT("normal"), 3);
+		TArray<uint8> StencilData = this->GetNpyBinaryUint8Data(Args, TEXT("stencil"), 1);
+		TArray<uint8> Data;
+		Data += LitData;
+		Data += DepthData;
+		Data += NormalData;
+    Data += StencilData;
+		return FExecStatus::Binary(Data);
+	});
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit_depth_normal_stencil npy", Cmd, Help);
 
 	// TODO: object_mask will be handled differently
 }

@@ -18,6 +18,7 @@ public:
 	void Unlit();
 	void Object();
 	void BaseColor();
+	void Stencil();
 
 	/** Set to VertexColor mode with painting objects */
 	void VertexColor();

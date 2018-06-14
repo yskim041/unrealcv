@@ -67,6 +67,11 @@ void FPlayerViewMode::DepthWorldUnits()
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
 }
 
+void FPlayerViewMode::Stencil()
+{
+	this->ApplyPostProcess("stencil");
+}
+
 void FPlayerViewMode::Depth()
 {
 	this->ApplyPostProcess("vis_depth");
@@ -158,6 +163,7 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 		ViewModeHandlers->Add(TEXT("wireframe"), ViewModeFunc::CreateLambda([World]() { FViewMode::Wireframe(World->GetGameViewport()->EngineShowFlags);  }));
 		ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::VertexColor));
 		ViewModeHandlers->Add(TEXT("no_transparency"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::NoTransparency));
+		ViewModeHandlers->Add(TEXT("stencil"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Stencil));
 	}
 
 	// Check args
@@ -210,7 +216,7 @@ void FPlayerViewMode::VertexColor()
 
 void FPlayerViewMode::NoTransparency()
 {
-	// Iterate over all the materials in the scene and replace transparent materials to non-transparent 
+	// Iterate over all the materials in the scene and replace transparent materials to non-transparent
 	for (TActorIterator<AActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
 	{
 		// Iterate over all the material of the actor
