@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Object.h"
+// #include "Object.h"
 #include "Networking.h"
 #include "NetworkMessage.h"
 #include "TcpServer.generated.h"
